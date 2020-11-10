@@ -21,6 +21,8 @@
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2019 Pierluigi Galdi. All rights reserved.</string>
 	<key>NSPrincipalClass</key>
-	<string>WeatherWidget</string>
+	<string>Weather.WeatherWidget</string>
+	<key>PKWidgetAuthor</key>
+	<string>Pierluigi Galdi</string>
 </dict>
 </plist>
