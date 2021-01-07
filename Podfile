@@ -11,6 +11,6 @@ target 'Weather' do
   use_frameworks!
 
   # Pods for Weather
-  pod 'PockKit', :path => '../../../Pod/PockKit'
+  pod 'PockKit'
 
 end

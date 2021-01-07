@@ -7,10 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		34B6D12A25A75D8D001C925C /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34DF17A422934DF000D00D61 /* CoreLocation.framework */; };
+		34B6D14325A764B4001C925C /* WeatherKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34E748732299847400DBB47E /* WeatherKit.framework */; };
 		34DF178C229347A500D00D61 /* WeatherWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34DF178B229347A500D00D61 /* WeatherWidget.swift */; };
 		34DF17A222934BA100D00D61 /* WeatherRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34DF17A122934BA100D00D61 /* WeatherRepository.swift */; };
-		34DF17A522934DF000D00D61 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34DF17A422934DF000D00D61 /* CoreLocation.framework */; };
-		34E748742299847400DBB47E /* WeatherKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 34E748732299847400DBB47E /* WeatherKit.framework */; };
 		D7472E3C8911CF06AE11F0AD /* Pods_Weather.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 770841262F2960FCC8F2FCB3 /* Pods_Weather.framework */; };
 /* End PBXBuildFile section */
 
@@ -33,8 +33,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				34E748742299847400DBB47E /* WeatherKit.framework in Frameworks */,
-				34DF17A522934DF000D00D61 /* CoreLocation.framework in Frameworks */,
+				34B6D12A25A75D8D001C925C /* CoreLocation.framework in Frameworks */,
+				34B6D14325A764B4001C925C /* WeatherKit.framework in Frameworks */,
 				D7472E3C8911CF06AE11F0AD /* Pods_Weather.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -204,7 +204,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Copy widget to destination folder.\necho \"Copying ${PRODUCT_NAME}.pock to destination folder\"\n# cp -r $TARGET_BUILD_DIR/$PRODUCT_NAME.pock ~/Library/Application\\ Support/Pock/Widgets/\n";
+			shellScript = "# Copy widget to destination folder.\nif [ \"${CONFIGURATION}\" == \"Debug\" ]; then\n  echo \"Copying ${PRODUCT_NAME}.pock to destination folder\"\n  cp -r $TARGET_BUILD_DIR/$PRODUCT_NAME.pock ~/Library/Application\\ Support/Pock/Widgets/\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -339,7 +339,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = EA6AFDABFEDCE3D60D805817 /* Pods-Weather.debug.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
@@ -355,7 +354,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.pigigaldi.pock.Weather;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				SKIP_INSTALL = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "Weather/Weather-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -371,7 +369,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 9537F44CA95A7DA1FFC5A0E1 /* Pods-Weather.release.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
@@ -387,7 +384,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.pigigaldi.pock.Weather;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				SKIP_INSTALL = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "Weather/Weather-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				SYSTEM_FRAMEWORK_SEARCH_PATHS = (
