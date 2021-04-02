@@ -9,14 +9,12 @@
 import Foundation
 import AppKit
 import PockKit
-import SnapKit
 
 class WeatherView: PKDetailView {
     override func didLoad() {
 		set(title: 	  "Weather", 	   speed: 0)
 		set(subtitle: "Fetching data", speed: 0)
 		set(image: NSImage(named: NSImage.touchBarSearchTemplateName))
-        maxWidth = 80
         super.didLoad()
     }
     override func didTapHandler() {
@@ -27,36 +25,37 @@ class WeatherView: PKDetailView {
 }
 
 public class WeatherWidget: PKWidget {
-    public var identifier: NSTouchBarItem.Identifier = NSTouchBarItem.Identifier(rawValue: "WeatherWidget")
+    public static var identifier: NSTouchBarItem.Identifier = NSTouchBarItem.Identifier(rawValue: "WeatherWidget")
     public var customizationLabel: String = "Weather"
     public var view: NSView!
     
-    private let weatherRepository: WeatherRepository!
+    private lazy var weatherRepository: WeatherRepository? = WeatherRepository()
+	private var data: WeatherData?
 
     required public init() {
         self.view = WeatherView(leftToRight: false)
-        self.weatherRepository = WeatherRepository()
-		self.weatherRepository.set(completionBlock: { [weak self] data in
-			DispatchQueue.main.async {
-				print("[WeatherWidget]: Updated weather data")
-				self?.update(with: data)
-			}
+		self.weatherRepository?.set(completionBlock: { [weak self] data in
+			print("[WeatherWidget]: Updated weather data")
+			self?.data = data
+			self?.update()
 		})
     }
     
     deinit {
+		print("[WeatherWidget]: Deinit")
+		weatherRepository = nil
         view = nil
+		data = nil
     }
     
-    private func update(with data: WeatherData?) {
+    private func update() {
         guard let view = view as? WeatherView, let data = data else {
             return
         }
-        
         let locality = data.locality ?? "Unknown location"
         
-        let titleWidth    = (locality as NSString).size(withAttributes: view.titleView.textFontAttributes).width
-        let subtitleWidth = (data.condition as NSString?)?.size(withAttributes: view.subtitleView.textFontAttributes).width ?? 0
+        let titleWidth    = (locality as NSString).size(withAttributes: view.titleView?.textFontAttributes).width
+        let subtitleWidth = (data.condition as NSString?)?.size(withAttributes: view.subtitleView?.textFontAttributes).width ?? 0
         view.maxWidth = max(titleWidth, subtitleWidth)
         
         view.set(title:    data.locality,  speed: 0)
@@ -69,7 +68,7 @@ public class WeatherWidget: PKWidget {
     }
     
     @objc private func printDescription() {
-        weatherRepository.printDescription()
+        weatherRepository?.printDescription()
     }
         
 }
