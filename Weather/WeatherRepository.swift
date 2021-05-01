@@ -9,16 +9,11 @@
 import Foundation
 import CoreLocation
 
-class WeatherData: NSObject {
+struct WeatherData {
     public private(set) var locality:  String?
     public private(set) var condition: String?
+	public private(set) var temperature: String?
     public private(set) var iconUrl:   URL?
-    convenience init(locality: String?, condition: String?, iconUrl: URL?) {
-        self.init()
-        self.locality  = locality
-        self.condition = condition
-        self.iconUrl   = iconUrl
-    }
 }
 
 class WeatherRepository: NSObject {
@@ -67,9 +62,10 @@ class WeatherRepository: NSObject {
                 return
             }
             let condition = data.conditionLocalizedString
+			let temperature = data.temperatureStringBasedOnLocale
             let iconUrl   = data.imageSmallURL
 			DispatchQueue.main.async { [weak self, locality, condition, iconUrl] in
-				self?.completionBlock?(WeatherData(locality: locality, condition: condition, iconUrl: iconUrl))
+				self?.completionBlock?(WeatherData(locality: locality, condition: condition, temperature: temperature, iconUrl: iconUrl))
 			}
         })
     }

@@ -12,8 +12,9 @@ import PockKit
 
 class WeatherView: PKDetailView {
     override func didLoad() {
+		canScrollSubtitle = true
 		set(title: 	  "Weather", 	   speed: 0)
-		set(subtitle: "Fetching data", speed: 0)
+		set(subtitle: "Fetching data", speed: 4)
 		set(image: NSImage(named: NSImage.touchBarSearchTemplateName))
         super.didLoad()
     }
@@ -25,7 +26,7 @@ class WeatherView: PKDetailView {
 }
 
 public class WeatherWidget: PKWidget {
-    public static var identifier: NSTouchBarItem.Identifier = NSTouchBarItem.Identifier(rawValue: "WeatherWidget")
+    public static var identifier: String = "WeatherWidget"
     public var customizationLabel: String = "Weather"
     public var view: NSView!
     
@@ -59,7 +60,7 @@ public class WeatherWidget: PKWidget {
         view.maxWidth = max(titleWidth, subtitleWidth)
         
         view.set(title:    data.locality,  speed: 0)
-        view.set(subtitle: data.condition, speed: 0)
+		view.set(subtitle: "\(data.temperature ?? "-")°, \(data.condition ?? "…")", speed: 0)
         if let iconUrl = data.iconUrl {
             view.set(image: NSImage(contentsOf: iconUrl))
         }
