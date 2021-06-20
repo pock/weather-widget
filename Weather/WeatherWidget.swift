@@ -50,20 +50,14 @@ public class WeatherWidget: PKWidget {
     }
     
     private func update() {
-        guard let view = view as? WeatherView, let data = data else {
+        guard let view = view as? WeatherView, let data = data, let condition = data.condition else {
             return
         }
-        let locality = data.locality ?? "Unknown location"
-        
-        let titleWidth    = (locality as NSString).size(withAttributes: view.titleView?.textFontAttributes).width
-        let subtitleWidth = (data.condition as NSString?)?.size(withAttributes: view.subtitleView?.textFontAttributes).width ?? 0
-        view.maxWidth = max(titleWidth, subtitleWidth)
-        
-        view.set(title:    data.locality,  speed: 0)
-		view.set(subtitle: "\(data.temperature ?? "-")°, \(data.condition ?? "…")", speed: 0)
-        if let iconUrl = data.iconUrl {
-            view.set(image: NSImage(contentsOf: iconUrl))
-        }
+        view.maxWidth = 120
+        let locality = data.name
+        view.set(title: locality, speed: 0)
+        view.set(subtitle: "\(data.temperature.formatted), \(condition.description)", speed: 0)
+        view.set(image: Bundle(for: Self.self).image(forResource: condition.icon))
         view.updateConstraints()
         view.layoutSubtreeIfNeeded()
     }

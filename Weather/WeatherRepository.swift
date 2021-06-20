@@ -9,13 +9,6 @@
 import Foundation
 import CoreLocation
 
-struct WeatherData {
-    public private(set) var locality:  String?
-    public private(set) var condition: String?
-	public private(set) var temperature: String?
-    public private(set) var iconUrl:   URL?
-}
-
 class WeatherRepository: NSObject {
     
     typealias WeatherCompletion = (WeatherData?) -> Void
@@ -54,18 +47,13 @@ class WeatherRepository: NSObject {
         guard let coordinate = location?.coordinate else {
             return
         }
-        WMWeatherStore.shared()?.currentConditions(for: coordinate, result: { [weak self, locality] data in
-            guard let data = data else {
-				DispatchQueue.main.async { [weak self] in
+        WeatherService().currentConditions(for: coordinate, result: { [weak self] data in
+            DispatchQueue.main.async { [weak self, data] in
+                guard let data = data else {
 					self?.completionBlock?(nil)
+                    return
 				}
-                return
-            }
-            let condition = data.conditionLocalizedString
-			let temperature = data.temperatureStringBasedOnLocale
-            let iconUrl   = data.imageSmallURL
-			DispatchQueue.main.async { [weak self, locality, condition, iconUrl] in
-				self?.completionBlock?(WeatherData(locality: locality, condition: condition, temperature: temperature, iconUrl: iconUrl))
+                self?.completionBlock?(data)
 			}
         })
     }
