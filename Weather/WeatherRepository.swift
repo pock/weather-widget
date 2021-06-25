@@ -21,15 +21,14 @@ class WeatherRepository: NSObject {
         super.init()
         print("[WeatherRepository]: init")
 		timer = Timer.scheduledTimer(withTimeInterval: 3600, repeats: true, block: { [weak self] _ in
-			// TODO: Retrieve location from user input (settings)
-			/// Amsterdam
-			let location = CLLocation(latitude: 52.37403, longitude: 4.88969)
-			self?.fetchCurrentCondition(for: location, locality: "Amsterdam")
+            self?.updateCurrentCondition()
 		})
 		timer?.fire()
+        NotificationCenter.default.addObserver(self, selector: #selector(updateCurrentCondition), name: .didChangeWidgetPreferences, object: nil)
     }
     
     deinit {
+        NotificationCenter.default.removeObserver(self)
 		timer?.invalidate()
         completionBlock = nil
         print("[WeatherRepository]: deinit")
@@ -43,7 +42,16 @@ class WeatherRepository: NSObject {
         print("\t- [WeatherRepository]: Location services enabled: \(CLLocationManager.locationServicesEnabled())")
     }
     
-    private func fetchCurrentCondition(for location: CLLocation?, locality: String?) {
+    @objc private func updateCurrentCondition() {
+        // Amsterdam
+        // let location = CLLocation(latitude: 52.37403, longitude: 4.88969)
+        let lat: CLLocationDegrees = Preferences[.latitude]
+        let lng: CLLocationDegrees = Preferences[.longitude]
+        let location = CLLocation(latitude: lat, longitude: lng)
+        fetchCurrentCondition(for: location)
+    }
+    
+    private func fetchCurrentCondition(for location: CLLocation?) {
         guard let coordinate = location?.coordinate else {
             return
         }

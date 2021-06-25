@@ -9,7 +9,7 @@
 import Foundation
 import CoreLocation
 
-struct WeatherData: Codable {
+struct Weather: Codable {
     struct Info: Codable {
         let id: Int
         let status: String
@@ -39,13 +39,25 @@ struct WeatherData: Codable {
     }
 }
 
+struct WeatherData: Codable {
+    struct Metadata: Codable {
+        let error: String?
+        let code: Int
+    }
+    let metadata: Metadata
+    let weather: Weather
+    private enum CodingKeys: String, CodingKey {
+        case weather = "data", metadata
+    }
+}
+
 internal class WeatherService {
     
-    // https://api.openweathermap.org/data/2.5/weather?lat=52.37&lon=4.88&appid=6fb995ebbeb649828d41be2e962f31e6&units=metric
+    // https://weather.navalia.app/weather?lat=52.37&lon=4.88&units=metric
     
     func currentConditions(for coordinate: CLLocationCoordinate2D, result: @escaping (WeatherData?) -> Void) {
-        let apiKey = "6fb995ebbeb649828d41be2e962f31e6"
-        let urlString = "https://api.openweathermap.org/data/2.5/weather?lat=\(coordinate.latitude)&lon=\(coordinate.longitude)&appid=\(apiKey)&units=metric"
+        let units: String = Preferences[.units]
+        let urlString = "https://weather.navalia.app/weather?lat=\(coordinate.latitude)&lon=\(coordinate.longitude)&units=\(units)"
         guard let url = URL(string: urlString) else {
             result(nil)
             return

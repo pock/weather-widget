@@ -24,5 +24,7 @@
 	<string>Weather.WeatherWidget</string>
 	<key>PKWidgetAuthor</key>
 	<string>Pierluigi Galdi</string>
+	<key>PKWidgetPreferenceClass</key>
+	<string>Weather.WeatherPreferencePane</string>
 </dict>
 </plist>

@@ -40,23 +40,29 @@ public class WeatherWidget: PKWidget {
 			self?.data = data
 			self?.update()
 		})
+        NotificationCenter.default.addObserver(self, selector: #selector(update), name: .didChangeWidgetLayout, object: nil)
     }
     
     deinit {
+        NotificationCenter.default.removeObserver(self)
 		print("[WeatherWidget]: Deinit")
 		weatherRepository = nil
         view = nil
 		data = nil
     }
     
-    private func update() {
-        guard let view = view as? WeatherView, let data = data, let condition = data.condition else {
+    @objc private func update() {
+        guard let view = view as? WeatherView, let data = data, let condition = data.weather.condition else {
             return
         }
         view.maxWidth = 120
-        let locality = data.name
+        let locality = data.weather.name
         view.set(title: locality, speed: 0)
-        view.set(subtitle: "\(data.temperature.formatted), \(condition.description)", speed: 0)
+        if Preferences[.show_description] {
+            view.set(subtitle: "\(data.weather.temperature.formatted), \(condition.description)", speed: 4)
+        } else {
+            view.set(subtitle: data.weather.temperature.formatted)
+        }
         view.set(image: Bundle(for: Self.self).image(forResource: condition.icon))
         view.updateConstraints()
         view.layoutSubtreeIfNeeded()
