@@ -12,9 +12,10 @@ import PockKit
 
 class WeatherView: PKDetailView {
     override func didLoad() {
+        canScrollTitle = true
 		canScrollSubtitle = true
-		set(title: 	  "Weather", 	   speed: 0)
-		set(subtitle: "Fetching data", speed: 4)
+		set(title: "Weather")
+		set(subtitle: "Fetching data")
 		set(image: NSImage(named: NSImage.touchBarSearchTemplateName))
         super.didLoad()
     }
@@ -57,9 +58,9 @@ public class WeatherWidget: PKWidget {
         }
         view.maxWidth = 120
         let locality = data.weather.name
-        view.set(title: locality, speed: 0)
+        view.set(title: locality)
         if Preferences[.show_description] {
-            view.set(subtitle: "\(data.weather.temperature.formatted), \(condition.description)", speed: 4)
+            view.set(subtitle: "\(data.weather.temperature.formatted), \(condition.description)")
         } else {
             view.set(subtitle: data.weather.temperature.formatted)
         }

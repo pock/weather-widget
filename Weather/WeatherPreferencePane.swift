@@ -52,13 +52,8 @@ class WeatherPreferencePane: NSViewController, PKWidgetPreference {
     
     private func updateTemperatureUnitsControlState() {
         let currentUnits: String = Preferences[.units]
-        if let units = TemperatureUnits(rawValue: currentUnits) {
-            switch units {
-            case .metric:
-                temperatureUnitsSegmentedControl.selectedSegment = 0
-            case .imperial:
-                temperatureUnitsSegmentedControl.selectedSegment = 1
-            }
+        if let units = TemperatureUnits(rawValue: currentUnits), let index = TemperatureUnits.allCases.firstIndex(of: units) {
+            temperatureUnitsSegmentedControl.selectedSegment = index
         }
     }
     

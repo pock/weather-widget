@@ -372,7 +372,7 @@
 			baseConfigurationReference = EA6AFDABFEDCE3D60D805817 /* Pods-Weather.debug.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_IDENTITY = "Apple Distribution";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 788D9WZ9Z3;
@@ -403,7 +403,7 @@
 			baseConfigurationReference = 9537F44CA95A7DA1FFC5A0E1 /* Pods-Weather.release.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_IDENTITY = "Apple Distribution";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 788D9WZ9Z3;
