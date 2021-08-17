@@ -31,7 +31,7 @@ public class WeatherWidget: PKWidget {
     public var customizationLabel: String = "Weather"
     public var view: NSView!
     
-    private lazy var weatherRepository: WeatherRepository? = WeatherRepository()
+    private var weatherRepository: WeatherRepository? = WeatherRepository()
 	private var data: WeatherData?
 
     required public init() {
@@ -47,24 +47,28 @@ public class WeatherWidget: PKWidget {
     deinit {
         NotificationCenter.default.removeObserver(self)
 		print("[WeatherWidget]: Deinit")
-		weatherRepository = nil
+        weatherRepository = nil
         view = nil
 		data = nil
     }
     
     @objc private func update() {
-        guard let view = view as? WeatherView, let data = data, let condition = data.weather.condition else {
+        guard let view = view as? WeatherView, let data = data else {
             return
         }
         view.maxWidth = 120
         let locality = data.weather.name
         view.set(title: locality)
-        if Preferences[.show_description] {
-            view.set(subtitle: "\(data.weather.temperature.formatted), \(condition.description)")
+        if Preferences[.show_description] && data.weather.temp > -999 {
+            view.set(subtitle: "\(data.weather.temperature), \(data.weather.description)")
         } else {
-            view.set(subtitle: data.weather.temperature.formatted)
+            view.set(subtitle: data.weather.temperature)
         }
-        view.set(image: Bundle(for: Self.self).image(forResource: condition.icon))
+        if let localIcon = Bundle(for: Self.self).image(forResource: data.weather.icon) {
+            view.set(image: localIcon)
+        } else if let systemIcon = NSImage(named: data.weather.icon) {
+            view.set(image: systemIcon)
+        }
         view.updateConstraints()
         view.layoutSubtreeIfNeeded()
     }

@@ -15,13 +15,15 @@ internal extension NSNotification.Name {
 }
 
 internal enum TemperatureUnits: String, CaseIterable {
-    case imperial, metric
+    case celsius, fahrenheit
 }
 
 internal struct Preferences {
     internal enum Keys: String {
-        case latitude
-        case longitude
+        case country_name
+        case city_name
+        case lat
+        case lng
         case units
         case show_description
     }
@@ -29,12 +31,16 @@ internal struct Preferences {
         get {
             guard let value = UserDefaults.standard.value(forKey: key.rawValue) as? T else {
                 switch key {
-                case .latitude:
-                    return CLLocationDegrees(52.37403) as! T
-                case .longitude:
-                    return CLLocationDegrees(4.88969) as! T
+                case .country_name:
+                    return "Netherlands" as! T
+                case .city_name:
+                    return "Amsterdam" as! T
+                case .lat:
+                    return CLLocationDegrees(4.91) as! T
+                case .lng:
+                    return CLLocationDegrees(52.35) as! T
                 case .units:
-                    return "metric" as! T
+                    return "celsius" as! T
                 case .show_description:
                     return true as! T
                 }
@@ -47,5 +53,13 @@ internal struct Preferences {
             #endif
             UserDefaults.standard.setValue(newValue, forKey: key.rawValue)
         }
+    }
+    static func reset() {
+        Preferences[.country_name] = "Netherlands"
+        Preferences[.city_name] = "Amsterdam"
+        Preferences[.lat] = CLLocationDegrees(4.91)
+        Preferences[.lng] = CLLocationDegrees(52.35)
+        Preferences[.units] = "celsius"
+        Preferences[.show_description] = true
     }
 }

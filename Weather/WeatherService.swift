@@ -8,34 +8,25 @@
 
 import Foundation
 import CoreLocation
+import AppKit
 
 struct Weather: Codable {
-    struct Info: Codable {
-        let id: Int
-        let status: String
-        let description: String
-        let icon: String
-        private enum CodingKeys: String, CodingKey {
-            case id, status = "main", description, icon
-        }
-    }
-    struct Temperature: Codable {
-        let value: Float
-        var formatted: String {
-            return "\(Int(value))°"
-        }
-        private enum CodingKeys: String, CodingKey {
-            case value = "temp"
-        }
-    }
     let name: String
-    let info: [Info]
-    let temperature: Temperature
-    var condition: Info? {
-        return info.last
-    }
-    private enum CodingKeys: String, CodingKey {
-        case name, info = "weather", temperature = "main"
+    let temp: Double
+    let icon: String
+    let description: String
+    var temperature: String {
+        guard temp > -999 else {
+            return "Unknown information"
+        }
+        let units: String = Preferences[.units]
+        switch units {
+        case "celsius":
+            let converted = (temp - 32) * (5/9)
+            return "\(Int(converted))°"
+        default:
+            return "\(Int(temp))°"
+        }
     }
 }
 
@@ -53,22 +44,49 @@ struct WeatherData: Codable {
 
 internal class WeatherService {
     
-    // https://weather.navalia.app/weather?lat=52.37&lon=4.88&units=metric
+    // https://weather.navalia.app/weather?lat=52.37&lon=4.88&units=celsius
+    // https://weather.navalia.app/condition?lat=52.37&lon=4.88&units=celsius&name=Dam
     
-    func currentConditions(for coordinate: CLLocationCoordinate2D, result: @escaping (WeatherData?) -> Void) {
-        let units: String = Preferences[.units]
-        let urlString = "https://weather.navalia.app/weather?lat=\(coordinate.latitude)&lon=\(coordinate.longitude)&units=\(units)"
-        guard let url = URL(string: urlString) else {
+    func currentConditions(for coordinate: CLLocationCoordinate2D, cityName: String, result: @escaping (WeatherData?) -> Void) {
+        let urlString = "https://weather.navalia.app/condition?lat=\(coordinate.latitude)&lon=\(coordinate.longitude)&units=fahrenheit&name=\(cityName)"
+        guard let escaped = urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed), let url = URL(string: escaped) else {
+            print("[WeatherService]: Invalid URL: \(urlString)")
             result(nil)
             return
         }
         let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 20)
         let session = URLSession.shared.dataTask(with: request) { [result] data, response, error in
+            print("[WeatherService]: \((response as? HTTPURLResponse)?.statusCode ?? -999)")
             guard error == nil, let data = data else {
-                result(nil)
+                let name: String = Preferences[.city_name]
+                let data = WeatherData(
+                    metadata: .init(error: nil, code: -999),
+                    weather: Weather(
+                        name: name,
+                        temp: -999,
+                        icon: NSImage.touchBarSearchTemplateName,
+                        description: "Unknown information"
+                    )
+                )
+                result(data)
                 return
             }
-            result(try? JSONDecoder().decode(WeatherData.self, from: data))
+            do {
+                let weather = try JSONDecoder().decode(WeatherData.self, from: data)
+                result(weather)
+            } catch {
+                let name: String = Preferences[.city_name]
+                let data = WeatherData(
+                    metadata: .init(error: nil, code: -999),
+                    weather: Weather(
+                        name: name,
+                        temp: -999,
+                        icon: NSImage.touchBarSearchTemplateName,
+                        description: "Unknown information"
+                    )
+                )
+                result(data)
+            }
         }
         session.resume()
     }

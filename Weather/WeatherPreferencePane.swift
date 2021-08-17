@@ -7,26 +7,40 @@
 //
 
 import Cocoa
+import CoreLocation
 import PockKit
+import Combine
 
 class WeatherPreferencePane: NSViewController, PKWidgetPreference {
         
     static var nibName: NSNib.Name = "WeatherPreferencePane"
     
     /// UI Elements
-    @IBOutlet private weak var latitudeTextField: NSTextField!
-    @IBOutlet private weak var longitudeTextField: NSTextField!
-    @IBOutlet private weak var confirmNewCoordinateButton: NSButton!
-    @IBOutlet private weak var retrieveFromCurrentLocationButton: NSButton!
-    @IBOutlet private weak var retrieveFromCurrentLocationSpinner: NSProgressIndicator!
+    @IBOutlet private weak var countryNamePopUpButton: NSPopUpButton!
+    @IBOutlet private weak var cityNamePopUpButton: NSPopUpButton!
+    @IBOutlet private weak var confirmNewLocationButton: NSButton!
     @IBOutlet private weak var temperatureUnitsSegmentedControl: NSSegmentedControl!
     @IBOutlet private weak var showDescriptionButton: NSButton!
     
+    /// Data
+    private var countries: [String: [City]] = [:]
+    private var selectedCity: City?
+    
+    deinit {
+        print("[WeatherPreferencePane]: Deinit")
+    }
+    
+    func reset() {
+        print("[WeatherPreferencePane]: Will reset preferences to default values…")
+        Preferences.reset()
+        NotificationCenter.default.post(name: .didChangeWidgetPreferences, object: nil)
+        NotificationCenter.default.post(name: .didChangeWidgetLayout, object: nil)
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        retrieveFromCurrentLocationSpinner.stopAnimation(nil)
+        prepareCitiesList()
         prepareTemperatureUnitsControl()
-        updateTextFieldLabels()
         updateCheckboxStates()
     }
     
@@ -39,15 +53,6 @@ class WeatherPreferencePane: NSViewController, PKWidgetPreference {
             control?.setLabel(option.rawValue.capitalized, forSegment: index)
         }
         control?.selectedSegment = selected
-    }
-    
-    private func updateTextFieldLabels() {
-        let latitude: CLLocationDegrees = Preferences[.latitude]
-        let longitude: CLLocationDegrees = Preferences[.longitude]
-        latitudeTextField.stringValue = ""
-        longitudeTextField.stringValue = ""
-        latitudeTextField.placeholderString = latitude.description
-        longitudeTextField.placeholderString = longitude.description
     }
     
     private func updateTemperatureUnitsControlState() {
@@ -67,19 +72,21 @@ class WeatherPreferencePane: NSViewController, PKWidgetPreference {
         }
         let notificationName: NSNotification.Name?
         switch control {
-        case confirmNewCoordinateButton:
-            if let lat = Double(latitudeTextField.stringValue), let lng = Double(longitudeTextField.stringValue) {
-                Preferences[.latitude] = lat
-                Preferences[.longitude] = lng
-                updateTextFieldLabels()
+        case confirmNewLocationButton:
+            if let city = selectedCity {
+                Preferences[.country_name] = city.country
+                Preferences[.city_name] = city.name
+                Preferences[.lat] = CLLocationDegrees(city.lat)
+                Preferences[.lng] = CLLocationDegrees(city.lng)
+                print("[WeatherPreferencePane]: Successfully saved new location: `\(city)`")
+            } else {
+                print("[WeatherPreferencePane]: Invalid city!")
+                return
             }
             notificationName = .didChangeWidgetPreferences
-        case retrieveFromCurrentLocationButton:
-            retrieveCoordinateFromCurrentLocation()
-            return
         case temperatureUnitsSegmentedControl:
             Preferences[.units] = TemperatureUnits.allCases[temperatureUnitsSegmentedControl.selectedSegment].rawValue
-            notificationName = .didChangeWidgetPreferences
+            notificationName = .didChangeWidgetLayout
         case showDescriptionButton:
             Preferences[.show_description] = showDescriptionButton.state == .on
             notificationName = .didChangeWidgetLayout
@@ -91,43 +98,126 @@ class WeatherPreferencePane: NSViewController, PKWidgetPreference {
         }
     }
     
-}
-
-extension WeatherPreferencePane: CLLocationManagerDelegate {
-    
-    @objc private func retrieveCoordinateFromCurrentLocation() {
-        retrieveFromCurrentLocationButton.isEnabled = false
-        retrieveFromCurrentLocationButton.title = "Searching…"
-        retrieveFromCurrentLocationSpinner.startAnimation(nil)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: { [weak self] in
-            let manager = CLLocationManager()
-            manager.delegate = self
-            if #available(macOS 11.0, *) {
-                manager.requestTemporaryFullAccuracyAuthorization(withPurposeKey: "Retrieve coordinate from current location")
-            } else {
-                manager.requestWhenInUseAuthorization()
-            }
-            manager.requestLocation()
-        })
-    }
-    
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        if let last = locations.last {
-            Preferences[.latitude] = last.coordinate.latitude
-            Preferences[.longitude] = last.coordinate.longitude
-            updateTextFieldLabels()
-            NotificationCenter.default.post(name: .didChangeWidgetPreferences, object: nil)
+    @IBAction private func popUpButtonSelectionDidChange(_ sender: Any?) {
+        guard let popUpButton = sender as? NSPopUpButton else {
+            return
         }
-        retrieveFromCurrentLocationButton.isEnabled = true
-        retrieveFromCurrentLocationButton.title = "Retrieve coordinate from current location"
-        retrieveFromCurrentLocationSpinner.stopAnimation(nil)
+        switch popUpButton {
+        case countryNamePopUpButton:
+            countryNamePopUpButton.title = popUpButton.titleOfSelectedItem ?? "Select country…"
+            updateCityNamePopUpButtonItems(for: popUpButton.titleOfSelectedItem)
+            selectedCity = countries[countryNamePopUpButton.title]?.first
+        case cityNamePopUpButton:
+            cityNamePopUpButton.title = popUpButton.titleOfSelectedItem ?? "Select city…"
+            selectedCity = countries[countryNamePopUpButton.title]?.first(where: { $0.name == popUpButton.titleOfSelectedItem })
+        default:
+            return
+        }
     }
     
-    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        updateTextFieldLabels()
-        retrieveFromCurrentLocationButton.isEnabled = true
-        retrieveFromCurrentLocationButton.title = "Retrieve coordinate from current location"
-        retrieveFromCurrentLocationSpinner.stopAnimation(nil)
+    private func updateCityNamePopUpButtonItems(for countryName: String?) {
+        guard let countryName = countryName else {
+            print("[WeatherPreferencePane]: Invalid country code")
+            return
+        }
+        print("[WeatherPreferencePane]: Loading cities for: \(countryName)")
+        cityNamePopUpButton.isEnabled = false
+        cityNamePopUpButton.title = "Loading cities…"
+        DispatchQueue.global().async { [weak self] in
+            if let self = self {
+                let cities = self.countries[countryName] ?? []
+                let sortedCities = cities.map({ $0.name }).sorted(by: { $0 < $1 })
+                DispatchQueue.main.async { [weak self] in
+                    if let self = self {
+                        self.cityNamePopUpButton.removeAllItems()
+                        self.cityNamePopUpButton.addItems(withTitles: sortedCities)
+                        if let preferred = self.selectedCity?.name, sortedCities.contains(preferred) {
+                            self.cityNamePopUpButton.title = preferred
+                        } else {
+                            if let first = sortedCities.first {
+                                self.cityNamePopUpButton.selectItem(withTitle: first)
+                            } else {
+                                self.cityNamePopUpButton.selectItem(at: 0)
+                            }
+                        }
+                        self.cityNamePopUpButton.isEnabled = true
+                        self.confirmNewLocationButton.isEnabled = true
+                    }
+                }
+            }
+        }
+    }
+    
+    private func startLoadingPopUpButtons() {
+        countryNamePopUpButton.isEnabled = false
+        countryNamePopUpButton.title = "Loading countries…"
+        cityNamePopUpButton.isEnabled = false
+        cityNamePopUpButton.title = "Loading cities…"
+        confirmNewLocationButton.isEnabled = false
+    }
+    
+    private func stopLoadingCountryPopUpButtons() {
+        DispatchQueue.main.async { [weak self] in
+            self?.countryNamePopUpButton.isEnabled = true
+            self?.countryNamePopUpButton.title = self?.selectedCity?.country ?? "Select country"
+        }
+    }
+    
+    private func prepareCitiesList() {
+        /// Invalidate controls
+        startLoadingPopUpButtons()
+        /// Load cities
+        DispatchQueue.global().async { [weak self] in
+            guard let self = self else {
+                return
+            }
+            defer {
+                self.stopLoadingCountryPopUpButtons()
+            }
+            if let fileURL = Bundle(for: Self.self).url(forResource:"cities", withExtension: "csv") {
+                do {
+                    let data = try String(contentsOfFile: fileURL.path)
+                    var sortedCountries: [String] = []
+                    var cities: [City] = []
+                    for line in data.components(separatedBy: "\n") {
+                        // [0] name, [1] lat, [2] lng, [3] country
+                        let cityData = line.components(separatedBy: ",")
+                        guard cityData.count >= 4 else {
+                            continue
+                        }
+                        let name = cityData[0]
+                        let lat = cityData[1]
+                        let lng = cityData[2]
+                        let country = cityData[3]
+                        cities.append(City(name: name, country: country, lat: lat, lng: lng))
+                    }
+                    let countryName: String = Preferences[.country_name]
+                    let cityName: String = Preferences[.city_name]
+                    for city in cities {
+                        if self.countries[city.country] != nil {
+                            self.countries[city.country]?.append(city)
+                        } else {
+                            sortedCountries.append(city.country)
+                            self.countries[city.country] = [city]
+                        }
+                        if city.country == countryName && city.name == cityName {
+                            self.selectedCity = city
+                        }
+                    }
+                    sortedCountries = sortedCountries.sorted(by: { $0 < $1 })
+                    DispatchQueue.main.async {
+                        self.countryNamePopUpButton.removeAllItems()
+                        self.countryNamePopUpButton.addItems(withTitles: sortedCountries)
+                        self.updateCityNamePopUpButtonItems(for: self.selectedCity?.country)
+                        print("[WeatherPreferencePane][cities]: Loaded \(self.countries.count) countries")
+                    }
+                } catch {
+                    print("[WeatherPreferencePane][cities]: Error: \(error.localizedDescription)")
+                }
+            } else {
+                print("[WeatherPreferencePane][cities]: No such file URL.")
+            }
+        }
     }
     
 }
