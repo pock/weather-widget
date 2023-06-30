@@ -8,41 +8,34 @@
 
 import Foundation
 import CoreLocation
-
-struct City: Codable {
-    let name: String
-    let country: String
-    let lat: String
-    let lng: String
-    var coords: CLLocation? {
-        guard let lat = CLLocationDegrees(lat), let lng = CLLocationDegrees(lng) else {
-            return nil
-        }
-        return CLLocation(latitude: lat, longitude: lng)
-    }
-}
-
 class WeatherRepository: NSObject {
     
     typealias WeatherCompletion = (WeatherData?) -> Void
     
     /// Core
-	private weak var timer: Timer?
-	private var completionBlock: WeatherCompletion?
-    
+    private weak var timer: Timer?
+    private var completionBlock: WeatherCompletion?
+    public var timers: Double?
     override init() {
         super.init()
         print("[WeatherRepository]: init")
+        let locationManager = CLLocationManager()
+        locationManager.requestAlwaysAuthorization()
+        locationManager.startMonitoringSignificantLocationChanges()
         NotificationCenter.default.addObserver(self, selector: #selector(updateCurrentCondition), name: .didChangeWidgetPreferences, object: nil)
-        timer = Timer.scheduledTimer(withTimeInterval: 3600, repeats: true, block: { [weak self] _ in
+        if Preferences[.UpdateFrequency] == "Fifteen"{timers = 900} else if Preferences[.UpdateFrequency] == "Thirty"{timers = 1800} else{timers = 3600}
+        timer = Timer.scheduledTimer(withTimeInterval:timers!, repeats: true, block: { [weak self] _ in
             self?.updateCurrentCondition()
         })
         timer?.fire()
     }
-    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        self.updateCurrentCondition()
+    }
+
     deinit {
         NotificationCenter.default.removeObserver(self)
-		timer?.invalidate()
+        timer?.invalidate()
         completionBlock = nil
         print("[WeatherRepository]: deinit")
     }
@@ -52,26 +45,23 @@ class WeatherRepository: NSObject {
     }
     
     public func printDescription() {
-        print("\t- [WeatherRepository]: Location services enabled: \(CLLocationManager.locationServicesEnabled())")
+        print("\t- [WeatherRepository]: Location services enabled")
     }
     
     @objc private func updateCurrentCondition() {
-        let cityName: String = Preferences[.city_name]
-        let lat: CLLocationDegrees = Preferences[.lat]
-        let lng: CLLocationDegrees = Preferences[.lng]
-        fetchCurrentCondition(for: CLLocation(latitude: lat, longitude: lng), cityName: cityName)
+        fetchCurrentCondition()
     }
     
-    private func fetchCurrentCondition(for location: CLLocation, cityName: String) {
-        print("[WeahterRepository]: Fetching data for: \(cityName)")
-        WeatherService().currentConditions(for: location.coordinate, cityName: cityName, result: { [weak self] data in
+    private func fetchCurrentCondition() {
+        print("[WeahterRepository]: Fetching data for current loaction")
+        WeatherService().currentConditions(result: { [weak self] data in
             DispatchQueue.main.async { [weak self, data] in
                 guard let data = data else {
-					self?.completionBlock?(nil)
+                    self?.completionBlock?(nil)
                     return
-				}
+                }
                 self?.completionBlock?(data)
-			}
+            }
         })
     }
 

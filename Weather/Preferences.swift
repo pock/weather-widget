@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import CoreLocation
 
 internal extension NSNotification.Name {
     static let didChangeWidgetPreferences = NSNotification.Name("didChangeWidgetPreferences")
@@ -18,32 +17,57 @@ internal enum TemperatureUnits: String, CaseIterable {
     case celsius, fahrenheit
 }
 
+internal enum Title_Options: String, CaseIterable {
+    case Neighborhood, City, Address
+}
+
+internal enum UpdateFrequencyOptions: String, CaseIterable {
+    case Fifteen, Thirty, Sixty
+}
+
+internal enum IconStyleOptions: String, CaseIterable {
+    case Default, Outlined, Filled, Illustrated
+}
+
 internal struct Preferences {
     internal enum Keys: String {
         case country_name
         case city_name
-        case lat
-        case lng
         case units
         case show_description
+        case Title
+        case OpenWeather
+        case IconStyle
+        case FutureForecast
+        case UpdateFrequency
+        case ShowIconOnly
     }
     static subscript<T>(_ key: Keys) -> T {
         get {
             guard let value = UserDefaults.standard.value(forKey: key.rawValue) as? T else {
                 switch key {
+                case .OpenWeather:
+                    return true as! T
+                case .FutureForecast:
+                    return true as! T
                 case .country_name:
-                    return "Netherlands" as! T
+                    return "Canada" as! T
                 case .city_name:
-                    return "Amsterdam" as! T
-                case .lat:
-                    return CLLocationDegrees(4.91) as! T
-                case .lng:
-                    return CLLocationDegrees(52.35) as! T
+                    return "Montreal" as! T
                 case .units:
                     return "celsius" as! T
                 case .show_description:
                     return true as! T
+                case .ShowIconOnly:
+                    return false as! T
+                case .UpdateFrequency:
+                    return "Fifteen" as! T
+                case .IconStyle:
+                    return "Outlined" as! T
+                case .Title:
+                    return "Neighborhood" as! T
                 }
+                
             }
             return value
         }
@@ -55,11 +79,16 @@ internal struct Preferences {
         }
     }
     static func reset() {
-        Preferences[.country_name] = "Netherlands"
-        Preferences[.city_name] = "Amsterdam"
-        Preferences[.lat] = CLLocationDegrees(4.91)
-        Preferences[.lng] = CLLocationDegrees(52.35)
+        Preferences[.OpenWeather] = true
+        Preferences[.FutureForecast] = true
+        Preferences[.country_name] = "Canada"
+        Preferences[.city_name] = "Montreal"
         Preferences[.units] = "celsius"
         Preferences[.show_description] = true
+        Preferences[.ShowIconOnly] = false
+        Preferences[.UpdateFrequency] = "Fifteen"
+        Preferences[.Title] = "Neighborhood"
+        Preferences[.IconStyle] = "Outlined"
+
     }
 }
