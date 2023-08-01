@@ -66,9 +66,10 @@ class WeatherView: PKDetailView {
             NotificationCenter.default.post(name: .didChangeWidgetPreferences, object: nil)
             DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
                 if Wait == 1{
+                    Wait = 0
                     Day = 0
                     NotificationCenter.default.post(name: .didChangeWidgetPreferences, object: nil)
-                }
+                }else{ Wait = Wait - 1}
             }
         }
     }
