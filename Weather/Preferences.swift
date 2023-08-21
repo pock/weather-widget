@@ -29,6 +29,14 @@ internal enum IconStyleOptions: String, CaseIterable {
     case Default, Outlined, Filled, Illustrated
 }
 
+internal enum DisplayOptions: String, CaseIterable {
+    case `Default` = "Default"
+    case noDescription = "Icon, Temp and Location"
+    case tempIconOnly = "Icon and Temp"
+    case iconOnly = "Icon Only"
+    case tempOnly = "Temp Only"
+}
+
 internal struct Preferences {
     internal enum Keys: String {
         case country_name
@@ -38,7 +46,9 @@ internal struct Preferences {
         case Title
         case OpenWeather
         case IconStyle
+        case Display
         case FutureForecast
+        case MoreInfo
         case UpdateFrequency
         case ShowIconOnly
     }
@@ -49,6 +59,8 @@ internal struct Preferences {
                 case .OpenWeather:
                     return true as! T
                 case .FutureForecast:
+                    return true as! T
+                case .MoreInfo:
                     return true as! T
                 case .country_name:
                     return "Canada" as! T
@@ -66,6 +78,8 @@ internal struct Preferences {
                     return "Outlined" as! T
                 case .Title:
                     return "Neighborhood" as! T
+                case .Display:
+                    return "Default" as! T
                 }
                 
             }
@@ -81,6 +95,7 @@ internal struct Preferences {
     static func reset() {
         Preferences[.OpenWeather] = true
         Preferences[.FutureForecast] = true
+        Preferences[.MoreInfo] = true
         Preferences[.country_name] = "Canada"
         Preferences[.city_name] = "Montreal"
         Preferences[.units] = "celsius"
@@ -89,6 +104,7 @@ internal struct Preferences {
         Preferences[.UpdateFrequency] = "Fifteen"
         Preferences[.Title] = "Neighborhood"
         Preferences[.IconStyle] = "Outlined"
+        Preferences[.Display] = "Default"
 
     }
 }

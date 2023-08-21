@@ -20,6 +20,14 @@
 	<string>1</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2019 Pierluigi Galdi. All rights reserved.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Needed to get your location</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Needed to get your location</string>
+	<key>NSLocationUsageDescription</key>
+	<string>Needed to get your location</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Needed to get your location</string>
 	<key>NSPrincipalClass</key>
 	<string>Weather.WeatherWidget</string>
 	<key>PKWidgetAuthor</key>

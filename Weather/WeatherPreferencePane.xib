@@ -9,23 +9,24 @@
         <customObject id="-2" userLabel="File's Owner" customClass="WeatherPreferencePane" customModule="Weather" customModuleProvider="target">
             <connections>
                 <outlet property="City_NeighbourhoodSegmentedControl" destination="Zph-mn-eF8" id="t3X-YE-Yo0"/>
-                <outlet property="FutureForcastButton" destination="EnH-5F-Ify" id="5Tr-FM-4zy"/>
+                <outlet property="DisplaySegmentedControl" destination="ael-Ll-U1S" id="DDg-oA-la7"/>
+                <outlet property="FutureForecastButton" destination="EnH-5F-Ify" id="bmU-oY-Tti"/>
                 <outlet property="IconStyleSegmentedControl" destination="LvK-EI-ael" id="eDQ-Yn-2is"/>
+                <outlet property="MoreInfoButton" destination="cLx-N4-fbS" id="GBe-4P-N49"/>
                 <outlet property="OpenWeatherButton" destination="B8l-Zj-G7R" id="yAe-G9-2kM"/>
                 <outlet property="UpdateFrequencySegmentedControl" destination="4Qt-W7-nLM" id="pBe-TO-Q5a"/>
-                <outlet property="iconOnlyButton" destination="Dxi-sT-siI" id="kmB-gK-vKI"/>
-                <outlet property="showDescriptionButton" destination="Ply-dF-hUB" id="saI-TR-6Cz"/>
                 <outlet property="temperatureUnitsSegmentedControl" destination="jfv-WB-apH" id="GYV-uh-jj3"/>
                 <outlet property="view" destination="Hz6-mo-xeY" id="0bl-1N-x8E"/>
             </connections>
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
-        <customView horizontalCompressionResistancePriority="756" translatesAutoresizingMaskIntoConstraints="NO" id="Hz6-mo-xeY">
-            <rect key="frame" x="0.0" y="0.0" width="510" height="278"/>
+        <customView horizontalCompressionResistancePriority="756" id="Hz6-mo-xeY">
+            <rect key="frame" x="0.0" y="0.0" width="595" height="339"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
                 <stackView distribution="fill" orientation="vertical" alignment="leading" spacing="18" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" fixedFrame="YES" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Sp7-vH-YdS">
-                    <rect key="frame" x="173" y="150" width="241" height="122"/>
+                    <rect key="frame" x="186" y="201" width="241" height="122"/>
                     <subviews>
                         <stackView distribution="fill" orientation="vertical" alignment="leading" spacing="6" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="250" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="9hm-9H-X5P">
                             <rect key="frame" x="0.0" y="70" width="199" height="52"/>
@@ -108,11 +109,11 @@
                         <real value="3.4028234663852886e+38"/>
                     </customSpacing>
                 </stackView>
-                <stackView distribution="fill" orientation="vertical" alignment="leading" spacing="18" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" fixedFrame="YES" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="8VZ-6c-4Rk">
-                    <rect key="frame" x="7" y="150" width="158" height="122"/>
+                <stackView distribution="fill" orientation="vertical" alignment="leading" spacing="18" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" misplaced="YES" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="8VZ-6c-4Rk">
+                    <rect key="frame" x="20" y="131" width="389" height="192"/>
                     <subviews>
                         <stackView distribution="fill" orientation="vertical" alignment="leading" spacing="6" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="7Ch-7B-jb2">
-                            <rect key="frame" x="0.0" y="70" width="133" height="52"/>
+                            <rect key="frame" x="0.0" y="140" width="133" height="52"/>
                             <subviews>
                                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="uxt-rL-3pJ">
                                     <rect key="frame" x="-2" y="36" width="112" height="16"/>
@@ -146,7 +147,7 @@
                             </customSpacing>
                         </stackView>
                         <stackView distribution="fill" orientation="vertical" alignment="leading" spacing="6" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="aER-j4-mm9">
-                            <rect key="frame" x="0.0" y="0.0" width="158" height="52"/>
+                            <rect key="frame" x="0.0" y="70" width="158" height="52"/>
                             <subviews>
                                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="100" verticalCompressionResistancePriority="100" translatesAutoresizingMaskIntoConstraints="NO" id="x8b-z2-EbF">
                                     <rect key="frame" x="-2" y="36" width="117" height="16"/>
@@ -180,24 +181,66 @@
                                 <real value="3.4028234663852886e+38"/>
                             </customSpacing>
                         </stackView>
+                        <stackView distribution="fill" orientation="vertical" alignment="leading" spacing="6" horizontalStackHuggingPriority="249.99998474121094" verticalStackHuggingPriority="249.99998474121094" verticalHuggingPriority="248" horizontalCompressionResistancePriority="749" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="s5z-lD-Z0I">
+                            <rect key="frame" x="0.0" y="0.0" width="389" height="52"/>
+                            <subviews>
+                                <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="1Bu-OO-dj4">
+                                    <rect key="frame" x="-2" y="36" width="52" height="16"/>
+                                    <textFieldCell key="cell" lineBreakMode="clipping" title="Display:" id="8Um-7y-cjs">
+                                        <font key="font" usesAppearanceFont="YES"/>
+                                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                    </textFieldCell>
+                                </textField>
+                                <segmentedControl verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="ael-Ll-U1S">
+                                    <rect key="frame" x="-5" y="-5" width="399" height="40"/>
+                                    <segmentedCell key="cell" controlSize="large" borderStyle="border" alignment="left" style="rounded" trackingMode="selectOne" id="wSF-MQ-Dgc">
+                                        <font key="font" metaFont="system"/>
+                                        <segments>
+                                            <segment label="Default" selected="YES"/>
+                                            <segment label="Icon Only" tag="1"/>
+                                            <segment label="Icon and Temp" tag="2"/>
+                                            <segment label="Icon, Temp and Location" tag="3"/>
+                                        </segments>
+                                    </segmentedCell>
+                                    <connections>
+                                        <action selector="didChangePreferences:" target="-2" id="ut6-TG-ylA"/>
+                                    </connections>
+                                </segmentedControl>
+                            </subviews>
+                            <visibilityPriorities>
+                                <integer value="1000"/>
+                                <integer value="1000"/>
+                            </visibilityPriorities>
+                            <customSpacing>
+                                <real value="3.4028234663852886e+38"/>
+                                <real value="3.4028234663852886e+38"/>
+                            </customSpacing>
+                        </stackView>
                     </subviews>
                     <visibilityPriorities>
+                        <integer value="1000"/>
                         <integer value="1000"/>
                         <integer value="1000"/>
                     </visibilityPriorities>
                     <customSpacing>
                         <real value="3.4028234663852886e+38"/>
                         <real value="3.4028234663852886e+38"/>
+                        <real value="3.4028234663852886e+38"/>
                     </customSpacing>
                 </stackView>
-                <stackView distribution="fill" orientation="vertical" alignment="leading" spacing="18" horizontalStackHuggingPriority="255.99998474121094" verticalStackHuggingPriority="200" verticalHuggingPriority="251" fixedFrame="YES" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="k0E-WE-ZU5">
-                    <rect key="frame" x="7" y="5" width="466" height="137"/>
+                <stackView distribution="fill" orientation="vertical" alignment="leading" spacing="18" horizontalStackHuggingPriority="255.99998474121094" verticalStackHuggingPriority="1000" verticalHuggingPriority="251" misplaced="YES" detachesHiddenViews="YES" translatesAutoresizingMaskIntoConstraints="NO" id="k0E-WE-ZU5">
+                    <rect key="frame" x="20" y="54" width="550" height="69"/>
                     <subviews>
-                        <box horizontalHuggingPriority="263" verticalHuggingPriority="750" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="sIA-Ej-TRO">
-                            <rect key="frame" x="0.0" y="134" width="466" height="5"/>
+                        <box horizontalHuggingPriority="263" verticalHuggingPriority="1000" boxType="separator" id="sIA-Ej-TRO">
+                            <rect key="frame" x="0.0" y="66" width="550" height="5"/>
+                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                            <constraints>
+                                <constraint firstAttribute="width" constant="1000" id="7IX-Ch-iN6"/>
+                            </constraints>
                         </box>
                         <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="B8l-Zj-G7R">
-                            <rect key="frame" x="-2" y="101" width="468" height="18"/>
+                            <rect key="frame" x="-2" y="33" width="552" height="18"/>
                             <buttonCell key="cell" type="check" title="Open weather app when taped (Mac OS 13.0+)" bezelStyle="regularSquare" imagePosition="left" inset="2" id="vcG-se-Qzc">
                                 <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                 <font key="font" usesAppearanceFont="YES"/>
@@ -207,7 +250,7 @@
                             </connections>
                         </button>
                         <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="EnH-5F-Ify">
-                            <rect key="frame" x="-2" y="67" width="468" height="18"/>
+                            <rect key="frame" x="-2" y="-1" width="552" height="18"/>
                             <buttonCell key="cell" type="check" title="Swipe to see 10 day forecast" bezelStyle="regularSquare" imagePosition="left" inset="2" id="OSj-tG-1dY">
                                 <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                 <font key="font" usesAppearanceFont="YES"/>
@@ -216,30 +259,12 @@
                                 <action selector="didChangePreferences:" target="-2" id="c1h-uV-03L"/>
                             </connections>
                         </button>
-                        <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Ply-dF-hUB">
-                            <rect key="frame" x="-2" y="33" width="468" height="18"/>
-                            <buttonCell key="cell" type="check" title="Show condition description" bezelStyle="regularSquare" imagePosition="left" inset="2" id="8oh-vb-6ei">
-                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                                <font key="font" usesAppearanceFont="YES"/>
-                            </buttonCell>
-                            <connections>
-                                <action selector="didChangePreferences:" target="-2" id="0tI-dt-BaZ"/>
-                            </connections>
-                        </button>
-                        <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Dxi-sT-siI">
-                            <rect key="frame" x="-2" y="-1" width="468" height="18"/>
-                            <buttonCell key="cell" type="check" title="Show icon only" bezelStyle="regularSquare" imagePosition="left" inset="2" id="GYW-Qx-BfA">
-                                <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
-                                <font key="font" usesAppearanceFont="YES"/>
-                            </buttonCell>
-                            <connections>
-                                <action selector="didChangePreferences:" target="-2" id="eIJ-TD-6gI"/>
-                            </connections>
-                        </button>
                     </subviews>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="69" id="prb-8y-Dri"/>
+                        <constraint firstAttribute="width" constant="550" id="zYl-DV-0DD"/>
+                    </constraints>
                     <visibilityPriorities>
-                        <integer value="1000"/>
-                        <integer value="1000"/>
                         <integer value="1000"/>
                         <integer value="1000"/>
                         <integer value="1000"/>
@@ -248,12 +273,29 @@
                         <real value="3.4028234663852886e+38"/>
                         <real value="3.4028234663852886e+38"/>
                         <real value="3.4028234663852886e+38"/>
-                        <real value="3.4028234663852886e+38"/>
-                        <real value="3.4028234663852886e+38"/>
                     </customSpacing>
                 </stackView>
+                <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="cLx-N4-fbS">
+                    <rect key="frame" x="18" y="20" width="552" height="18"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <buttonCell key="cell" type="check" title="Double tap to see more info for the selected or current day" bezelStyle="regularSquare" imagePosition="left" inset="2" id="l1d-BE-8K8">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" usesAppearanceFont="YES"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="didChangePreferences:" target="-2" id="ZaV-qU-ZaF"/>
+                    </connections>
+                </button>
             </subviews>
-            <point key="canvasLocation" x="170" y="115"/>
+            <constraints>
+                <constraint firstAttribute="width" constant="595" id="5ou-xd-EgR"/>
+                <constraint firstItem="k0E-WE-ZU5" firstAttribute="top" secondItem="8VZ-6c-4Rk" secondAttribute="bottom" constant="8" symbolic="YES" id="TZ8-6W-m3z"/>
+                <constraint firstAttribute="bottom" secondItem="k0E-WE-ZU5" secondAttribute="bottom" constant="41" id="fIr-dq-mAk"/>
+                <constraint firstItem="k0E-WE-ZU5" firstAttribute="leading" secondItem="Hz6-mo-xeY" secondAttribute="leading" constant="20" symbolic="YES" id="qmk-VO-OoH"/>
+                <constraint firstAttribute="height" constant="339" id="uW7-cj-sUW"/>
+                <constraint firstItem="k0E-WE-ZU5" firstAttribute="leading" secondItem="8VZ-6c-4Rk" secondAttribute="leading" id="zKR-XR-Vr3"/>
+            </constraints>
+            <point key="canvasLocation" x="194.5" y="127.5"/>
         </customView>
     </objects>
 </document>

@@ -18,10 +18,10 @@ class WeatherPreferencePane: NSViewController, PKWidgetPreference {
     @IBOutlet private weak var City_NeighbourhoodSegmentedControl: NSSegmentedControl!
     @IBOutlet private weak var UpdateFrequencySegmentedControl: NSSegmentedControl!
     @IBOutlet private weak var IconStyleSegmentedControl: NSSegmentedControl!
-    @IBOutlet private weak var showDescriptionButton: NSButton!
+    @IBOutlet private weak var DisplaySegmentedControl: NSSegmentedControl!
     @IBOutlet private weak var OpenWeatherButton: NSButton!
-    @IBOutlet private weak var FutureForcastButton: NSButton!
-    @IBOutlet private weak var iconOnlyButton: NSButton!
+    @IBOutlet private weak var FutureForecastButton: NSButton!
+    @IBOutlet private weak var MoreInfoButton: NSButton!
     deinit {
         print("[WeatherPreferencePane]: Deinit")
     }
@@ -37,6 +37,9 @@ class WeatherPreferencePane: NSViewController, PKWidgetPreference {
         super.viewDidLoad()
         prepareTemperatureUnitsControl()
         prepareCity_NeighbourhoodSegmentedControl()
+        prepareIconStyleSegmentedControl()
+        prepareUpdateFrequencySegmentedControl()
+        prepareDisplaySegmentedControl()
         updateCheckboxStates()
     }
     
@@ -74,15 +77,24 @@ class WeatherPreferencePane: NSViewController, PKWidgetPreference {
     
     private func prepareIconStyleSegmentedControl() {
         let control = IconStyleSegmentedControl
-        var selected = 0
+        var selected = 1
         control?.segmentCount = IconStyleOptions.allCases.count
         for (index,option) in IconStyleOptions.allCases.enumerated() {
-            selected = option.rawValue == Preferences[.IconStyle] ? index : 0
+            selected = option.rawValue == Preferences[.IconStyle] ? index : 1
             control?.setLabel(option.rawValue.capitalized, forSegment: index)
         }
         control?.selectedSegment = selected
     }
-    
+    private func prepareDisplaySegmentedControl() {
+        let control = DisplaySegmentedControl
+        var selected = 0
+        control?.segmentCount = DisplayOptions.allCases.count
+        for (index,option) in DisplayOptions.allCases.enumerated() {
+            selected = option.rawValue == Preferences[.Display] ? index : 0
+            control?.setLabel(option.rawValue.capitalized, forSegment: index)
+        }
+        control?.selectedSegment = selected
+    }
     private func updateTemperatureUnitsControlState() {
         let currentUnits: String = Preferences[.units]
         if let units = TemperatureUnits(rawValue: currentUnits), let index = TemperatureUnits.allCases.firstIndex(of: units) {
@@ -97,10 +109,9 @@ class WeatherPreferencePane: NSViewController, PKWidgetPreference {
     }
     
     private func updateCheckboxStates() {
-            showDescriptionButton.state = Preferences[.show_description] ? .on : .off
-            FutureForcastButton.state = Preferences[.FutureForecast] ? .on : .off
+            FutureForecastButton.state = Preferences[.FutureForecast] ? .on : .off
+            MoreInfoButton.state = Preferences[.MoreInfo] ? .on : .off
             OpenWeatherButton.state = Preferences[.OpenWeather] ? .on : .off
-            iconOnlyButton.state = Preferences[.ShowIconOnly] ? .on : .off
         }
     @IBAction private func didChangePreferences(_ sender: Any?) {
         guard let control = sender as? NSControl else {
@@ -117,21 +128,24 @@ class WeatherPreferencePane: NSViewController, PKWidgetPreference {
         case UpdateFrequencySegmentedControl:
             Preferences[.UpdateFrequency] = UpdateFrequencyOptions.allCases[UpdateFrequencySegmentedControl.selectedSegment].rawValue
             notificationName = .didChangeWidgetPreferences
-        case showDescriptionButton:
-            Preferences[.show_description] = showDescriptionButton.state == .on
-            notificationName = .didChangeWidgetLayout
-        case iconOnlyButton:
-            Preferences[.ShowIconOnly] = iconOnlyButton.state == .on
+        case MoreInfoButton:
+            Day = 0
+            Info = 0
+            Preferences[.MoreInfo] = MoreInfoButton.state == .on
             notificationName = .didChangeWidgetLayout
         case OpenWeatherButton:
             Preferences[.OpenWeather] = OpenWeatherButton.state == .on
             notificationName = .didChangeWidgetLayout
-        case FutureForcastButton:
-            Preferences[.FutureForecast] = FutureForcastButton.state == .on
+        case FutureForecastButton:
+            Preferences[.FutureForecast] = FutureForecastButton.state == .on
             Day = 0
+            Info = 0
             notificationName = .didChangeWidgetPreferences
         case IconStyleSegmentedControl:
             Preferences[.IconStyle] = IconStyleOptions.allCases[IconStyleSegmentedControl.selectedSegment].rawValue
+            notificationName = .didChangeWidgetPreferences
+        case DisplaySegmentedControl:
+            Preferences[.Display] = DisplayOptions.allCases[DisplaySegmentedControl.selectedSegment].rawValue
             notificationName = .didChangeWidgetPreferences
         default:
             return
