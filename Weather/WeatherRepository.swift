@@ -57,6 +57,7 @@ class WeatherRepository: NSObject {
     override init() {
         super.init()
         print("[WeatherRepository]: init")
+        Preferences.fixSwappedDefaultCoordinates()
         NotificationCenter.default.addObserver(self, selector: #selector(preferencesDidChange), name: .didChangeWidgetPreferences, object: nil)
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(systemDidWake), name: NSWorkspace.didWakeNotification, object: nil)
         startMonitoringNetwork()

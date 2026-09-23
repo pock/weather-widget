@@ -62,4 +62,16 @@ internal struct Preferences {
         Preferences[.units] = "celsius"
         Preferences[.show_description] = true
     }
+    /// `reset()` used to store Amsterdam's coordinates swapped (lat 4.91, lng 52.35: in the Indian Ocean).
+    /// Weather is now fetched by coordinates only, so put them back in the right order.
+    static func fixSwappedDefaultCoordinates() {
+        let cityName: String = Preferences[.city_name]
+        let lat: CLLocationDegrees = Preferences[.lat]
+        let lng: CLLocationDegrees = Preferences[.lng]
+        guard cityName == "Amsterdam", lat == 4.91, lng == 52.35 else {
+            return
+        }
+        Preferences[.lat] = CLLocationDegrees(52.35)
+        Preferences[.lng] = CLLocationDegrees(4.91)
+    }
 }
