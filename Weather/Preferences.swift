@@ -36,9 +36,9 @@ internal struct Preferences {
                 case .city_name:
                     return "Amsterdam" as! T
                 case .lat:
-                    return CLLocationDegrees(4.91) as! T
-                case .lng:
                     return CLLocationDegrees(52.35) as! T
+                case .lng:
+                    return CLLocationDegrees(4.91) as! T
                 case .units:
                     return "celsius" as! T
                 case .show_description:
@@ -57,8 +57,8 @@ internal struct Preferences {
     static func reset() {
         Preferences[.country_name] = "Netherlands"
         Preferences[.city_name] = "Amsterdam"
-        Preferences[.lat] = CLLocationDegrees(4.91)
-        Preferences[.lng] = CLLocationDegrees(52.35)
+        Preferences[.lat] = CLLocationDegrees(52.35)
+        Preferences[.lng] = CLLocationDegrees(4.91)
         Preferences[.units] = "celsius"
         Preferences[.show_description] = true
     }
