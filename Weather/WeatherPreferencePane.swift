@@ -28,7 +28,8 @@ class WeatherPreferencePane: NSViewController, PKWidgetPreference {
     }
     private var catalog: CitiesCatalog?
     private var selectedCity: City?
-    
+    private let locationStatusLabel = NSTextField(wrappingLabelWithString: "")
+
     deinit {
         print("[WeatherPreferencePane]: Deinit")
     }
@@ -45,8 +46,30 @@ class WeatherPreferencePane: NSViewController, PKWidgetPreference {
         prepareCitiesList()
         prepareTemperatureUnitsControl()
         updateCheckboxStates()
+        prepareLocationStatus()
     }
-    
+
+    private func prepareLocationStatus() {
+        guard let pickerRow = confirmNewLocationButton.superview, let container = pickerRow.superview as? NSStackView else {
+            return
+        }
+        locationStatusLabel.preferredMaxLayoutWidth = 420
+        container.insertArrangedSubview(locationStatusLabel, at: 0)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateLocationStatus), name: .didChangeLocationStatus, object: nil)
+        updateLocationStatus()
+    }
+
+    /// The city picker is only offered when macOS can't tell where the Mac is.
+    @objc private func updateLocationStatus() {
+        let detectedCityName = Preferences.detectedCityName
+        if let name = detectedCityName {
+            locationStatusLabel.stringValue = "Location: \(name) (detected automatically)"
+        } else {
+            locationStatusLabel.stringValue = "Pock can't get your location from macOS. Allow Pock in System Settings › Privacy & Security › Location Services, or choose a city:"
+        }
+        confirmNewLocationButton.superview?.isHidden = detectedCityName != nil
+    }
+
     private func prepareTemperatureUnitsControl() {
         let control = temperatureUnitsSegmentedControl
         var selected = 0

@@ -12,6 +12,7 @@ import CoreLocation
 internal extension NSNotification.Name {
     static let didChangeWidgetPreferences = NSNotification.Name("didChangeWidgetPreferences")
     static let didChangeWidgetLayout = NSNotification.Name("didChangeWidgetLayout")
+    static let didChangeLocationStatus = NSNotification.Name("didChangeWeatherLocationStatus")
 }
 
 internal enum TemperatureUnits: String, CaseIterable {
@@ -61,6 +62,20 @@ internal struct Preferences {
         Preferences[.lng] = CLLocationDegrees(4.91)
         Preferences[.units] = "celsius"
         Preferences[.show_description] = true
+    }
+    /// Place found by macOS Location Services on the last refresh, `nil` if it couldn't be found.
+    /// The preference pane only offers the city picker while this is `nil`.
+    static var detectedCityName: String? {
+        get { UserDefaults.standard.string(forKey: "detected_city_name") }
+        set { UserDefaults.standard.set(newValue, forKey: "detected_city_name") }
+    }
+    /// `true` once a city other than the default one has been saved from the picker.
+    /// ponytail: an explicit pick of Amsterdam reads as "never picked", the IP guess then wins; add a flag if that matters.
+    static var hasPickedCity: Bool {
+        guard let city = UserDefaults.standard.string(forKey: Keys.city_name.rawValue) else {
+            return false
+        }
+        return city != "Amsterdam"
     }
     /// `reset()` used to store Amsterdam's coordinates swapped (lat 4.91, lng 52.35: in the Indian Ocean).
     /// Weather is now fetched by coordinates only, so put them back in the right order.
