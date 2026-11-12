@@ -23,9 +23,13 @@ class WeatherPreferencePane: NSViewController, PKWidgetPreference {
     @IBOutlet private weak var showDescriptionButton: NSButton!
     
     /// Data
-    private var countries: [String: [City]] = [:]
+    private var countries: [String: [City]] {
+        return catalog?.countries ?? [:]
+    }
+    private var catalog: CitiesCatalog?
     private var selectedCity: City?
-    
+    private let locationStatusLabel = NSTextField(wrappingLabelWithString: "")
+
     deinit {
         print("[WeatherPreferencePane]: Deinit")
     }
@@ -42,8 +46,30 @@ class WeatherPreferencePane: NSViewController, PKWidgetPreference {
         prepareCitiesList()
         prepareTemperatureUnitsControl()
         updateCheckboxStates()
+        prepareLocationStatus()
     }
-    
+
+    private func prepareLocationStatus() {
+        guard let pickerRow = confirmNewLocationButton.superview, let container = pickerRow.superview as? NSStackView else {
+            return
+        }
+        locationStatusLabel.preferredMaxLayoutWidth = 420
+        container.insertArrangedSubview(locationStatusLabel, at: 0)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateLocationStatus), name: .didChangeLocationStatus, object: nil)
+        updateLocationStatus()
+    }
+
+    /// The city picker is only offered when macOS can't tell where the Mac is.
+    @objc private func updateLocationStatus() {
+        let detectedCityName = Preferences.detectedCityName
+        if let name = detectedCityName {
+            locationStatusLabel.stringValue = "Location: \(name) (detected automatically)"
+        } else {
+            locationStatusLabel.stringValue = "Pock can't get your location from macOS. Allow Pock in System Settings › Privacy & Security › Location Services, or choose a city:"
+        }
+        confirmNewLocationButton.superview?.isHidden = detectedCityName != nil
+    }
+
     private func prepareTemperatureUnitsControl() {
         let control = temperatureUnitsSegmentedControl
         var selected = 0
@@ -105,11 +131,17 @@ class WeatherPreferencePane: NSViewController, PKWidgetPreference {
         switch popUpButton {
         case countryNamePopUpButton:
             countryNamePopUpButton.title = popUpButton.titleOfSelectedItem ?? "Select country…"
-            updateCityNamePopUpButtonItems(for: popUpButton.titleOfSelectedItem)
+            /// Set before populating the city list (it's now filled synchronously and shows `selectedCity`).
             selectedCity = countries[countryNamePopUpButton.title]?.first
+            updateCityNamePopUpButtonItems(for: popUpButton.titleOfSelectedItem)
         case cityNamePopUpButton:
-            cityNamePopUpButton.title = popUpButton.titleOfSelectedItem ?? "Select city…"
-            selectedCity = countries[countryNamePopUpButton.title]?.first(where: { $0.name == popUpButton.titleOfSelectedItem })
+            /// Resolve the city from the item itself: titles of cities sharing a name are disambiguated
+            /// with their coordinates, so they can't be matched against `City.name`.
+            guard let item = popUpButton.selectedItem, let city = item.representedObject as? City else {
+                return
+            }
+            selectedCity = city
+            cityNamePopUpButton.title = item.title
         default:
             return
         }
@@ -121,31 +153,30 @@ class WeatherPreferencePane: NSViewController, PKWidgetPreference {
             return
         }
         print("[WeatherPreferencePane]: Loading cities for: \(countryName)")
-        cityNamePopUpButton.isEnabled = false
-        cityNamePopUpButton.title = "Loading cities…"
-        DispatchQueue.global().async { [weak self] in
-            if let self = self {
-                let cities = self.countries[countryName] ?? []
-                let sortedCities = cities.map({ $0.name }).sorted(by: { $0 < $1 })
-                DispatchQueue.main.async { [weak self] in
-                    if let self = self {
-                        self.cityNamePopUpButton.removeAllItems()
-                        self.cityNamePopUpButton.addItems(withTitles: sortedCities)
-                        if let preferred = self.selectedCity?.name, sortedCities.contains(preferred) {
-                            self.cityNamePopUpButton.title = preferred
-                        } else {
-                            if let first = sortedCities.first {
-                                self.cityNamePopUpButton.selectItem(withTitle: first)
-                            } else {
-                                self.cityNamePopUpButton.selectItem(at: 0)
-                            }
-                        }
-                        self.cityNamePopUpButton.isEnabled = true
-                        self.confirmNewLocationButton.isEnabled = true
-                    }
-                }
-            }
+        /// City names are already sorted by `CitiesCatalog`, no need to go off the main thread.
+        let entries = catalog?.cityMenuEntries[countryName] ?? []
+        cityNamePopUpButton.removeAllItems()
+        /// Pull-down buttons use the first item as their title and never show it in the menu,
+        /// so add a placeholder title item to keep the first city (e.g. Adelaide, Brno) selectable.
+        cityNamePopUpButton.addItem(withTitle: "")
+        /// Items are added through the menu so that duplicate titles are never merged by `NSPopUpButton`;
+        /// each item carries its `City` so the selection doesn't depend on the title.
+        let menu = cityNamePopUpButton.menu
+        for entry in entries {
+            let item = NSMenuItem(title: entry.title, action: nil, keyEquivalent: "")
+            item.representedObject = entry.city
+            menu?.addItem(item)
         }
+        if let preferred = selectedCity, let entry = entries.first(where: { $0.city == preferred }) {
+            cityNamePopUpButton.title = entry.title
+        } else if let first = entries.first {
+            cityNamePopUpButton.title = first.title
+            selectedCity = first.city
+        } else {
+            cityNamePopUpButton.title = "Select city…"
+        }
+        cityNamePopUpButton.isEnabled = true
+        confirmNewLocationButton.isEnabled = true
     }
     
     private func startLoadingPopUpButtons() {
@@ -157,66 +188,145 @@ class WeatherPreferencePane: NSViewController, PKWidgetPreference {
     }
     
     private func stopLoadingCountryPopUpButtons() {
-        DispatchQueue.main.async { [weak self] in
-            self?.countryNamePopUpButton.isEnabled = true
-            self?.countryNamePopUpButton.title = self?.selectedCity?.country ?? "Select country"
-        }
+        countryNamePopUpButton.isEnabled = true
+        countryNamePopUpButton.title = selectedCity?.country ?? "Select country"
     }
     
     private func prepareCitiesList() {
         /// Invalidate controls
         startLoadingPopUpButtons()
-        /// Load cities
-        DispatchQueue.global().async { [weak self] in
+        /// Load cities (parsed off the main thread the first time only, then cached)
+        CitiesCatalog.load { [weak self] catalog in
             guard let self = self else {
                 return
             }
             defer {
                 self.stopLoadingCountryPopUpButtons()
             }
-            if let fileURL = Bundle(for: Self.self).url(forResource:"cities", withExtension: "csv") {
-                do {
-                    let data = try String(contentsOfFile: fileURL.path)
-                    var sortedCountries: [String] = []
-                    var cities: [City] = []
-                    for line in data.components(separatedBy: "\n") {
-                        // [0] name, [1] lat, [2] lng, [3] country
-                        let cityData = line.components(separatedBy: ",")
-                        guard cityData.count >= 4 else {
-                            continue
-                        }
-                        let name = cityData[0]
-                        let lat = cityData[1]
-                        let lng = cityData[2]
-                        let country = cityData[3]
-                        cities.append(City(name: name, country: country, lat: lat, lng: lng))
-                    }
-                    let countryName: String = Preferences[.country_name]
-                    let cityName: String = Preferences[.city_name]
-                    for city in cities {
-                        if self.countries[city.country] != nil {
-                            self.countries[city.country]?.append(city)
-                        } else {
-                            sortedCountries.append(city.country)
-                            self.countries[city.country] = [city]
-                        }
-                        if city.country == countryName && city.name == cityName {
-                            self.selectedCity = city
-                        }
-                    }
-                    sortedCountries = sortedCountries.sorted(by: { $0 < $1 })
-                    DispatchQueue.main.async {
-                        self.countryNamePopUpButton.removeAllItems()
-                        self.countryNamePopUpButton.addItems(withTitles: sortedCountries)
-                        self.updateCityNamePopUpButtonItems(for: self.selectedCity?.country)
-                        print("[WeatherPreferencePane][cities]: Loaded \(self.countries.count) countries")
-                    }
-                } catch {
-                    print("[WeatherPreferencePane][cities]: Error: \(error.localizedDescription)")
-                }
-            } else {
-                print("[WeatherPreferencePane][cities]: No such file URL.")
+            guard let catalog = catalog else {
+                return
             }
+            self.catalog = catalog
+            let countryName: String = Preferences[.country_name]
+            let cityName: String = Preferences[.city_name]
+            let lat: CLLocationDegrees = Preferences[.lat]
+            let lng: CLLocationDegrees = Preferences[.lng]
+            self.selectedCity = catalog.city(named: cityName, in: countryName, nearestTo: lat, lng)
+            self.countryNamePopUpButton.removeAllItems()
+            /// Placeholder title item for the pull-down button (see `updateCityNamePopUpButtonItems(for:)`).
+            self.countryNamePopUpButton.addItem(withTitle: "")
+            self.countryNamePopUpButton.addItems(withTitles: catalog.sortedCountries)
+            self.updateCityNamePopUpButtonItems(for: self.selectedCity?.country)
+            print("[WeatherPreferencePane][cities]: Loaded \(catalog.countries.count) countries")
+        }
+    }
+    
+}
+
+/// Contents of `cities.csv`.
+///
+/// The file is parsed lazily, off the main thread, the first time the preference pane asks for it,
+/// then kept in memory so that re-opening the pane doesn't parse it again.
+private final class CitiesCatalog {
+    
+    /// Cities grouped by country, in file order.
+    let countries: [String: [City]]
+    /// City menu entries grouped by country, sorted by title.
+    ///
+    /// Names that appear more than once in the same country (e.g. "Albany, United States")
+    /// get their coordinates appended, e.g. "Albany (42.65°, -73.76°)", so that every entry has a unique title.
+    let cityMenuEntries: [String: [(title: String, city: City)]]
+    /// Country names, sorted.
+    let sortedCountries: [String]
+    
+    /// Only accessed on `queue`.
+    private static var shared: CitiesCatalog?
+    private static let queue = DispatchQueue(label: "WeatherWidget.CitiesCatalog", qos: .userInitiated)
+    
+    private init(countries: [String: [City]]) {
+        self.countries = countries
+        self.cityMenuEntries = countries.mapValues(CitiesCatalog.menuEntries(for:))
+        self.sortedCountries = countries.keys.sorted(by: { $0 < $1 })
+    }
+    
+    private static func menuEntries(for cities: [City]) -> [(title: String, city: City)] {
+        var countByName: [String: Int] = [:]
+        for city in cities {
+            countByName[city.name, default: 0] += 1
+        }
+        var usedTitles: Set<String> = []
+        var entries: [(title: String, city: City)] = []
+        entries.reserveCapacity(cities.count)
+        for city in cities {
+            var title = city.name
+            if countByName[city.name, default: 0] > 1 {
+                let lat = Double(city.lat) ?? 0
+                let lng = Double(city.lng) ?? 0
+                title = String(format: "%@ (%.2f°, %.2f°)", city.name, lat, lng)
+            }
+            /// Safety net: never produce two identical titles (they would be merged by the pop-up button).
+            var uniqueTitle = title
+            var suffix = 2
+            while usedTitles.contains(uniqueTitle) {
+                uniqueTitle = "\(title) #\(suffix)"
+                suffix += 1
+            }
+            usedTitles.insert(uniqueTitle)
+            entries.append((title: uniqueTitle, city: city))
+        }
+        return entries.sorted(by: { $0.title < $1.title })
+    }
+    
+    /// Returns the city with the given name in the given country; when several share that name,
+    /// the one closest to the given coordinates.
+    func city(named name: String, in country: String, nearestTo lat: CLLocationDegrees, _ lng: CLLocationDegrees) -> City? {
+        let candidates = countries[country]?.filter({ $0.name == name }) ?? []
+        guard candidates.count > 1 else {
+            return candidates.first
+        }
+        func distance(_ city: City) -> Double {
+            let dLat = (Double(city.lat) ?? .infinity) - lat
+            var dLng = abs((Double(city.lng) ?? .infinity) - lng)
+            if dLng > 180 { dLng = 360 - dLng }
+            return dLat * dLat + dLng * dLng
+        }
+        return candidates.min(by: { distance($0) < distance($1) })
+    }
+    
+    /// Calls `completion` on the main queue.
+    static func load(completion: @escaping (CitiesCatalog?) -> Void) {
+        queue.async {
+            if shared == nil {
+                shared = parse()
+            }
+            let catalog = shared
+            DispatchQueue.main.async {
+                completion(catalog)
+            }
+        }
+    }
+    
+    private static func parse() -> CitiesCatalog? {
+        guard let fileURL = Bundle(for: WeatherPreferencePane.self).url(forResource:"cities", withExtension: "csv") else {
+            print("[WeatherPreferencePane][cities]: No such file URL.")
+            return nil
+        }
+        do {
+            let data = try String(contentsOfFile: fileURL.path)
+            var countries: [String: [City]] = [:]
+            for line in data.components(separatedBy: "\n") {
+                // [0] name, [1] lat, [2] lng, [3] country, [4] population (unused)
+                let cityData = line.components(separatedBy: ",")
+                guard cityData.count >= 4 else {
+                    continue
+                }
+                let city = City(name: cityData[0], country: cityData[3], lat: cityData[1], lng: cityData[2])
+                countries[city.country, default: []].append(city)
+            }
+            return CitiesCatalog(countries: countries)
+        } catch {
+            print("[WeatherPreferencePane][cities]: Error: \(error.localizedDescription)")
+            return nil
         }
     }
     
